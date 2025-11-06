@@ -155,7 +155,7 @@ export default function App() {
           )}
           { endPos && (
             <Marker position={endPos} icon={redIcon}>
-              <Popup>Start</Popup>
+              <Popup>End</Popup>
             </Marker>
           )}
           {route.length > 0 && (
