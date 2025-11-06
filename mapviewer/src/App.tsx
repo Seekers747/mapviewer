@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Polyline, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Polyline, useMap, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import './App.css';
@@ -42,10 +42,12 @@ export default function App() {
   const [duration, setDuration] = useState<number>(0);
   const [loading, setLoading] = useState(false);
   const [mode, setMode] = useState('driving-car');
-  const [startPos, setStartPos] = useState<[number, number]>([52.3733747, 4.8833205]); // Amsterdam
-  const [endPos, setEndPos] = useState<[number, number]>([51.920223, 4.4749919]); // Rotterdam
+  const [startPos, setStartPos] = useState<[number, number] | null>(null);
+  const [endPos, setEndPos] = useState<[number, number] | null>(null);
 
   const calculateRoute = async () => {
+    if (!startPos || !endPos) return;
+    
     setLoading(true);
     try {
       const response = await fetch(
@@ -124,10 +126,9 @@ export default function App() {
           <option value="cycling-regular">Bike</option>
           <option value="foot-walking">Walk</option>
         </select>
-
         <button 
           onClick={calculateRoute} 
-          disabled={loading}
+          disabled={loading || !startPos || !endPos}
           className={`route-button ${loading ? 'loading' : ''}`}
         >
           {loading ? 'Calculating...' : 'Calculate Route'}
@@ -147,8 +148,16 @@ export default function App() {
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           />
-          <Marker position={startPos}/>
-          <Marker position={endPos} icon={redIcon}/>
+          { startPos && (
+            <Marker position={startPos}>
+              <Popup>Start</Popup>
+            </Marker>
+          )}
+          { endPos && (
+            <Marker position={endPos} icon={redIcon}>
+              <Popup>Start</Popup>
+            </Marker>
+          )}
           {route.length > 0 && (
             <>
               <Polyline positions={route} color="blue" weight={4} opacity={0.7} />
