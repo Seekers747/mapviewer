@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Polyline, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import './App.css';
@@ -98,12 +98,8 @@ export default function App() {
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           />
-          <Marker position={start}>
-            <Popup>Start: Amsterdam</Popup>
-          </Marker>
-          <Marker position={end}>
-            <Popup>End: Rotterdam</Popup>
-          </Marker>
+          <Marker position={start}/>
+          <Marker position={end}/>
           {route.length > 0 && (
             <>
               <Polyline positions={route} color="blue" weight={4} opacity={0.7} />
