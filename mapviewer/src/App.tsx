@@ -6,7 +6,7 @@ import './App.css';
 
 const routeAPIKey = 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6IjZkZDFjZWQzMTIzNTQzN2Y4MDJmZDUyYzRhNGQwNTcxIiwiaCI6Im11cm11cjY0In0=';
 
-// Fix for default marker icon in Leaflet with React
+// Fix default icon URLs for Leaflet
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
@@ -14,7 +14,15 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
 });
 
-// Component to fit map bounds to route
+const redIcon = new L.Icon({
+  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png',
+  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41],
+});
+
 function FitBounds({ coordinates }: { coordinates: [number, number][] }) {
   const map = useMap();
   
@@ -34,28 +42,26 @@ export default function App() {
   const [duration, setDuration] = useState<number>(0);
   const [loading, setLoading] = useState(false);
   const [mode, setMode] = useState('driving-car');
-  
-  const start: [number, number] = [52.3733747, 4.8833205]; // Amsterdam
-  const end: [number, number] = [51.920223, 4.4749919]; // Rotterdam
+  const [startPos, setStartPos] = useState<[number, number]>([52.3733747, 4.8833205]); // Amsterdam
+  const [endPos, setEndPos] = useState<[number, number]>([51.920223, 4.4749919]); // Rotterdam
 
   const calculateRoute = async () => {
     setLoading(true);
     try {
       const response = await fetch(
-        `https://api.openrouteservice.org/v2/directions/${mode}?api_key=${routeAPIKey}&start=${start[1]},${start[0]}&end=${end[1]},${end[0]}`
+        `https://api.openrouteservice.org/v2/directions/${mode}?api_key=${routeAPIKey}&start=${startPos[1]},${startPos[0]}&end=${endPos[1]},${endPos[0]}`
       );
       
       const data = await response.json();
       
       if (data.features && data.features[0]) {
         const coords = data.features[0].geometry.coordinates;
-        // Convert [lon, lat] to [lat, lon] for Leaflet
         const routeCoords: [number, number][] = coords.map((coord: number[]) => [coord[1], coord[0]]);
         setRoute(routeCoords);
         
         const summary = data.features[0].properties.summary;
-        setDistance(summary.distance / 1000); // Convert to km
-        setDuration(summary.duration / 60); // Convert to minutes
+        setDistance(summary.distance / 1000);
+        setDuration(summary.duration / 60);
       }
     } catch (error) {
       console.error('Error fetching route:', error);
@@ -68,6 +74,46 @@ export default function App() {
   return (
     <>
       <div className="route-controls">
+        <div className='put-start-location'>
+          <h4>Start Location</h4>
+          <input
+            type='number'
+            step='0.000001'
+            defaultValue={startPos[0]}
+            onBlur={(e) => setStartPos([parseFloat(e.target.value), startPos[1]])}
+            placeholder='Latitude (e.g. 52.3733747)'
+            className='input-lat'
+          />
+          <input
+            type='number'
+            step='0.000001'
+            defaultValue={startPos[1]}
+            onBlur={(e) => setStartPos([startPos[0], parseFloat(e.target.value)])}
+            placeholder='Longitude (e.g. 4.8833205)'
+            className='input-lon'
+          />
+        </div>
+
+        <div className='put-end-location'>
+          <h4>End Location</h4>
+          <input
+            type='number'
+            step='0.000001'
+            defaultValue={endPos[0]}
+            onBlur={(e) => setEndPos([parseFloat(e.target.value), endPos[1]])}
+            placeholder='Latitude (e.g. 51.920223)'
+            className='input-lat'
+          />
+          <input
+            type='number'
+            step='0.000001'
+            defaultValue={endPos[1]}
+            onBlur={(e) => setEndPos([endPos[0], parseFloat(e.target.value)])}
+            placeholder='Longitude (e.g. 4.4749919)'
+            className='input-lon'
+          />
+        </div>
+
         <select 
           value={mode} 
           onChange={(e) => setMode(e.target.value)}
@@ -77,6 +123,7 @@ export default function App() {
           <option value="cycling-regular">Bike</option>
           <option value="foot-walking">Walk</option>
         </select>
+
         <button 
           onClick={calculateRoute} 
           disabled={loading}
@@ -84,6 +131,7 @@ export default function App() {
         >
           {loading ? 'Calculating...' : 'Calculate Route'}
         </button>
+
         {distance > 0 && (
           <div className="route-info">
             <div><strong>Distance:</strong> {distance.toFixed(2)} km</div>
@@ -98,8 +146,8 @@ export default function App() {
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           />
-          <Marker position={start}/>
-          <Marker position={end}/>
+          <Marker position={startPos}/>
+          <Marker position={endPos} icon={redIcon}/>
           {route.length > 0 && (
             <>
               <Polyline positions={route} color="blue" weight={4} opacity={0.7} />
