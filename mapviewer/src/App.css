@@ -63,8 +63,7 @@ html, body, #root {
 }
 
 /* Inputs for coordinates */
-.input-lat,
-.input-lon {
+.input-start-location, .input-end-location {
   width: 100%;
   padding: 0.5rem 0.75rem;
   border: 1px solid #ccc;
@@ -73,8 +72,8 @@ html, body, #root {
   transition: border-color 0.2s, box-shadow 0.2s;
 }
 
-.input-lat:focus,
-.input-lon:focus {
+.input-start-location:focus,
+.input-end-location:focus {
   outline: none;
   border-color: #4a90e2;
   box-shadow: 0 0 5px rgba(74, 144, 226, 0.4);

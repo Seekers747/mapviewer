@@ -71,46 +71,47 @@ export default function App() {
     }
   };
 
+  async function geocodePlace(placeName: string | number | boolean) {
+    try {
+      const response = await fetch( `https://api.openrouteservice.org/geocode/search?api_key=${routeAPIKey}&text=${encodeURIComponent(placeName)}`);
+      const data = await response.json();
+      if (data.features && data.features.length > 0) {
+        const [lon, lat] = data.features[0].geometry.coordinates;
+        return [lat, lon]; // Return as [lat, lon]
+      } else {
+        throw new Error('Place not found');
+      }
+    } catch {
+      alert("Not valid state")
+    }
+  }
+
   return (
     <>
       <div className="route-controls">
         <div className='put-start-location'>
           <h4>Start Location</h4>
           <input
-            type='number'
-            step='0.000001'
-            defaultValue={startPos[0]}
-            onBlur={(e) => setStartPos([parseFloat(e.target.value), startPos[1]])}
-            placeholder='Latitude (e.g. 52.3733747)'
-            className='input-lat'
-          />
-          <input
-            type='number'
-            step='0.000001'
-            defaultValue={startPos[1]}
-            onBlur={(e) => setStartPos([startPos[0], parseFloat(e.target.value)])}
-            placeholder='Longitude (e.g. 4.8833205)'
-            className='input-lon'
+            type="text"
+            className="input-start-location"
+            placeholder="Enter start location (e.g. Amsterdam)"
+            onBlur={async (e) => {
+              const coords = await geocodePlace(e.target.value);
+              if (coords) setStartPos(coords as [number, number]);
+            }}
           />
         </div>
 
         <div className='put-end-location'>
           <h4>End Location</h4>
           <input
-            type='number'
-            step='0.000001'
-            defaultValue={endPos[0]}
-            onBlur={(e) => setEndPos([parseFloat(e.target.value), endPos[1]])}
-            placeholder='Latitude (e.g. 51.920223)'
-            className='input-lat'
-          />
-          <input
-            type='number'
-            step='0.000001'
-            defaultValue={endPos[1]}
-            onBlur={(e) => setEndPos([endPos[0], parseFloat(e.target.value)])}
-            placeholder='Longitude (e.g. 4.4749919)'
-            className='input-lon'
+            type="text"
+            className="input-end-location"
+            placeholder="Enter end location (e.g. Rotterdam)"
+            onBlur={async (e) => {
+              const coords = await geocodePlace(e.target.value);
+              if (coords) setEndPos(coords as [number, number]);
+            }}
           />
         </div>
 
