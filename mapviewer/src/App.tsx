@@ -6,7 +6,6 @@ import './App.css'
 
 const routeAPIKey = 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6IjZkZDFjZWQzMTIzNTQzN2Y4MDJmZDUyYzRhNGQwNTcxIiwiaCI6Im11cm11cjY0In0='
 
-// Fix default icon URLs for Leaflet
 delete (L.Icon.Default.prototype as any)._getIconUrl
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
@@ -47,9 +46,13 @@ export default function App() {
   const [startPos, setStartPos] = useState<[number, number] | null>(null)
   const [endPos, setEndPos] = useState<[number, number] | null>(null)
   const [instructions, setInstructions] = useState<any[]>([])
+  const [showControls, setShowControls] = useState(true)
 
   const calculateRoute = async () => {
-    if (!startPos || !endPos) return
+    if (!startPos || !endPos) {
+      alert("Please enter both a start and end location before calculating the route.")
+      return
+    }
     
     setLoading(true)
     try {
@@ -85,6 +88,12 @@ export default function App() {
     }
   }
 
+  const clearRoute = () => {
+    setRoute([]); setStartPos(null); setEndPos(null);
+    setStartInput(""); setEndInput(""); setDistance(0);
+    setDuration(""); setInstructions([]);
+  }
+
   const getUserLocation = (type: "start" | "end") => {
     if (!navigator.geolocation) {
       alert("Geolocatie wordt niet ondersteund door je browser")
@@ -105,7 +114,7 @@ export default function App() {
       },
       (error) => {
         console.error(error)
-        alert("Kan locatie niet ophalen")
+        alert("Can not get location")
       },
       { enableHighAccuracy: true }
     )
@@ -138,83 +147,103 @@ export default function App() {
         throw new Error('Place not found')
       }
     } catch {
-      alert("Not valid state")
+      let message = ""
+      placeName ? message = "place name not found: " + placeName : message = "Did not put in a place"
+      alert(message)
     }
   }
 
   return (
     <>
-      <div className="route-controls">
-        <div className='put-start-location'>
-          <h4>Start Location</h4>
-          <input
-            type="text"
-            className="input-start-location"
-            placeholder="Enter start location (e.g. Amsterdam)"
-            value={startInput}
-            onChange={(e) => setStartInput(e.target.value)}
-            onBlur={async () => {
-              const coords = await geocodePlace(startInput)
-              if (coords) setStartPos(coords as [number, number])
-            }}
-          />
-          <button onClick={() => getUserLocation("start")}>Haal mijn locatie op</button>
-        </div>
+      {showControls && (
+        <>
+          <button onClick={() => setShowControls(false)} className="close-route-controls">
+            Close route controls
+          </button>
+          <div className="route-controls">
+            <div className='put-start-location'>
+              <h4>Start Location</h4>
+              <input
+                type="text"
+                className="input-start-location"
+                placeholder="Enter start location (e.g. Amsterdam)"
+                value={startInput}
+                onChange={(e) => setStartInput(e.target.value)}
+                onBlur={async () => {
+                  const coords = await geocodePlace(startInput)
+                  if (coords) setStartPos(coords as [number, number])
+                }}
+              />
+              <button onClick={() => getUserLocation("start")}>Get my location</button>
+            </div>
 
-        <div className='put-end-location'>
-          <h4>End Location</h4>
-          <input
-            type="text"
-            className="input-end-location"
-            placeholder="Enter end location (e.g. Rotterdam)"
-            value={endInput}
-            onChange={(e) => setEndInput(e.target.value)}
-            onBlur={async () => {
-              const coords = await geocodePlace(endInput)
-              if (coords) setEndPos(coords as [number, number])
-            }}
-          />
-          <button onClick={() => getUserLocation("end")}>Haal mijn locatie op</button>
-        </div>
+            <div className='put-end-location'>
+              <h4>End Location</h4>
+              <input
+                type="text"
+                className="input-end-location"
+                placeholder="Enter end location (e.g. Rotterdam)"
+                value={endInput}
+                onChange={(e) => setEndInput(e.target.value)}
+                onBlur={async () => {
+                  const coords = await geocodePlace(endInput)
+                  if (coords) setEndPos(coords as [number, number])
+                }}
+              />
+              <button onClick={() => getUserLocation("end")}>Get my location</button>
+            </div>
 
-        <select 
-          value={mode} 
-          onChange={(e) => setMode(e.target.value)}
-          className="mode-select"
-        >
-          <option value="driving-car">Car</option>
-          <option value="cycling-regular">Bike</option>
-          <option value="foot-walking">Walk</option>
-        </select>
-        <button 
-          onClick={calculateRoute} 
-          disabled={loading || !startPos || !endPos}
-          className={`route-button ${loading ? 'loading' : ''}`}
-        >
-          {loading ? 'Calculating...' : 'Calculate Route'}
+            <select 
+              value={mode} 
+              onChange={(e) => setMode(e.target.value)}
+              className="mode-select"
+            >
+              <option value="driving-car">Car</option>
+              <option value="cycling-regular">Bike</option>
+              <option value="foot-walking">Walk</option>
+            </select>
+            <button
+              onClick={clearRoute}
+              className='clear-button'
+            >
+              Clear route
+            </button>
+            <button 
+              onClick={calculateRoute} 
+              disabled={loading}
+              className={`route-button ${loading ? 'loading' : ''}`}
+            >
+              {loading ? 'Calculating...' : 'Calculate Route'}
+            </button>
+
+            {distance > 0 && (
+              <div className="route-info">
+                <div><strong>Distance:</strong> {distance.toFixed(2)} km</div>
+                <div><strong>Duration:</strong> {duration}</div>
+              </div>
+            )}
+
+            {instructions.length > 0 && (
+              <div className="instructions-block">
+                <h3>Turn-by-Turn Directions</h3>
+                <ul>
+                  {instructions.map((step, index) => (
+                    <li key={index}>
+                      <span className="step-number">{index + 1}.</span> {step.instruction}
+                      <span className="step-distance">({(step.distance / 1000).toFixed(2)} km)</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        </>
+      )}
+      {!showControls && (
+        <button onClick={() => setShowControls(true)} className="open-route-controls">
+          Open controls
         </button>
-
-        {distance > 0 && (
-          <div className="route-info">
-            <div><strong>Distance:</strong> {distance.toFixed(2)} km</div>
-            <div><strong>Duration:</strong> {duration}</div>
-          </div>
-        )}
-
-        {instructions.length > 0 && (
-          <div className="instructions-block">
-            <h3>Turn-by-Turn Directions</h3>
-            <ul>
-              {instructions.map((step, index) => (
-                <li key={index}>
-                  <span className="step-number">{index + 1}.</span> {step.instruction}
-                  <span className="step-distance">({(step.distance / 1000).toFixed(2)} km)</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-      </div>
+      )}
       
       <div className='map'>
         <MapContainer center={[52.15, 4.65]} zoom={9} style={{ height: '100%', width: '100%' }}>
