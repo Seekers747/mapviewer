@@ -22,8 +22,8 @@ html, body, #root {
 
 .route-controls {
   position: absolute;
-  top: 10px;
-  right: 10px;
+  top: 0;
+  right: 0;
   z-index: 1000;
   background: rgba(255, 255, 255, 0.46);
   backdrop-filter: blur(8px);
@@ -31,6 +31,7 @@ html, body, #root {
   border-radius: 8px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
   max-width: 400px;
+  overflow-y:scroll;
 }
 
 .route-controls * {
@@ -44,6 +45,10 @@ html, body, #root {
   border-bottom: 2px solid #4a90e2;
   display: inline-block;
   padding-bottom: 3px;
+}
+
+.put-start-location {
+  margin-top: 3rem;
 }
 
 .put-start-location,
@@ -74,7 +79,7 @@ html, body, #root {
 }
 
 .mode-select {
-  margin-right: 1rem;
+  margin-right: 0.5rem;
   padding: 0.5rem;
   border-radius: 8px;
   border: 1px solid #ccc;
@@ -91,20 +96,32 @@ html, body, #root {
   padding: 0.6rem;
   font-size: 1rem;
   cursor: pointer;
-  transition: background-color 0.25s ease, transform 0.1s ease;
+  transition: background-color 0.25s ease;
 }
 
 .route-button:hover {
   background-color: #357ab8;
 }
 
-.route-button:active {
-  transform: scale(0.98);
-}
-
 .route-button.loading {
   background-color: #7ba8d9;
   cursor: wait;
+}
+
+.clear-button {
+  background-color: #7c7c7c;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 0.6rem;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.25s ease;
+  margin-right: 0.5rem;
+}
+
+.clear-button:hover {
+  background-color: #515151;
 }
 
 .route-info {
@@ -171,4 +188,24 @@ html, body, #root {
   font-size: 0.85rem;
   color: #4a90e2;
   margin-left: 0.3rem;
+}
+
+.close-route-controls,
+.open-route-controls {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  z-index: 1100;
+  background: rgba(255,255,255,0.9);
+  border: none;
+  border-radius: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  transition: all 0.2s ease;
+}
+
+.close-route-controls:hover,
+.open-route-controls:hover {
+  background: rgba(240,240,240,0.95);
 }
