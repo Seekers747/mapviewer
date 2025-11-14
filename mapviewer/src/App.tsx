@@ -4,7 +4,7 @@ import 'leaflet/dist/leaflet.css'
 import L from 'leaflet'
 import './App.css'
 
-const routeAPIKey = 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6IjZkZDFjZWQzMTIzNTQzN2Y4MDJmZDUyYzRhNGQwNTcxIiwiaCI6Im11cm11cjY0In0='
+const routeAPIKey = import.meta.env.VITE_ROUTE_API_KEY
 
 // Fix default icon URLs for Leaflet
 delete (L.Icon.Default.prototype as any)._getIconUrl
